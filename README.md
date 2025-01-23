@@ -1,2 +1,3 @@
-I developed this project as part of my A-Level Computer Science coursework, achieving an impressive score of 62 out of 70.
-For my A-Levels, we were given the brief of - design and create a solution for a problem that people face, and I had been facinated by image recognition and wanted to try and create something simmilar in python
+I developed this project as part of my A-Level Computer Science coursework, where I achieved a strong score of 62 out of 70. For the coursework, we were tasked with designing and creating a solution to a real-world problem. Inspired by my fascination with image recognition, I set out to develop a Python-based application that incorporated this technology.
+
+With only five months to learn, design, and implement the solution, time constraints posed significant challenges. As highlighted in the documentation, this limited timeframe meant I couldn’t fully implement all the features I had envisioned, but the experience was invaluable in enhancing my skills and understanding.
