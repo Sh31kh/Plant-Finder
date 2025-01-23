@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {text-align: center;}
+p {text-align: center;}
+div {text-align: center;}
+.container {
+  position: relative;
+  text-align: center;
+  color: white;
+
+.centered {
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+<h1><font color="#39BFC8"><div title="Only JPG file format only please">Upload your image<sup><small>&#9432</small></sup></div></font></h1>
+</head>
+<body style="background-color:#435a75;">
+<body>
+<div class="container">
+  <img src="/static/clearlogo.png" width="700" height="500" class="center">
+  <div class="centered"><font color="#39BFC8"><form method="Post" action="/" enctype="multipart/form-data"></font>
+    <font color="#39BFC8"><input type = "file" name = "imgFile" accept=".jgp,.png"></font>
+    <font color="#39BFC8"><input type = "submit" value= "upload" ></font>
+</div>
+
+</body>
+</html>
