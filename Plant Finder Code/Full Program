@@ -1,0 +1,427 @@
+################################################################################################### - Libraries ⬇️
+from tkinter import *
+from tkinter import messagebox
+import ast
+import os
+import cv2
+import numpy as np
+import tornado.web
+import tornado.ioloop
+import webbrowser
+import tkinter as tk
+################################################################################################### - Dictionary ⬇️
+colour = {
+    "Background" : "#5b6057", 
+    "Box" : "#6E9075",
+    "Text" : "#78C091",
+    "Title" : "#81F0E5", 
+}
+################################################################################################### - Create window ⬇️
+class PlantFinderApp:
+    def __init__(self):
+        self.root = Tk()
+        self.root.title("Welcome to Plant Finder")
+        self.root.geometry("925x500+300+200")
+        self.root.configure(bg="#f6f6f6")
+        self.root.resizable(False, False)
+
+        self.login_frame = LoginFrame(self.root)
+
+    def run(self):
+        self.root.mainloop()
+
+########################################################################################################################### - logging in + Validation ⬇️
+class LoginFrame(Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master = master
+        self.bind("<Return>", self.signin)
+
+        self.img = PhotoImage(file="Logo1.png")
+        Label(self.master, image=self.img, bg="#f6f6f6").place(x=-40, y=30)
+
+        self.frame = Frame(self.master, width=350, height=350, bg="#f6f6f6")
+        self.frame.place(x=480, y=7)
+
+        self.heading = Label(self.frame, text="Sign in", fg="#3fc1c9", bg="#f6f6f6",font=("Microsoft YaHei UI Light", 23, "bold"))
+        self.heading.place(x=100, y=80)
+
+################################################################################################### - Enter username for logging in ⬇️
+        self.uname = Entry(self.frame, width=25, fg="#364f6b", border=0, bg="#f6f6f6", font=("Microsoft YaHei UI Light", 15))
+        self.uname.place(x=30, y=165)
+        self.uname.insert(0, "Username")
+        self.uname.bind("<FocusIn>", self.on_enter)
+        self.uname.bind("<FocusOut>", self.on_leave)
+        Frame(self.frame, width=295, height=3, bg="#364f6b").place(x=25, y=190)
+
+################################################################################################### - Enter password for logging in ⬇️
+        self.pword = Entry(self.frame, width=25, show="*", fg="#364f6b", border=0, bg="#f6f6f6", font=("Microsoft YaHei UI Light", 15))
+        self.pword.place(x=30, y=225)
+        self.pword.insert(0, "Password")
+        self.pword.bind("<FocusIn>", self.on_enter)
+        self.pword.bind("<FocusOut>", self.on_leave)
+        Frame(self.frame, width=295, height=3, bg="#364f6b").place(x=25, y=250)
+
+################################################################################################### - Button for signing up ⬇️        
+        Button(self.frame, width=39, pady=7, text="Sign in", bg="#3fc1c9", fg="#f6f6f6", border=0,command=self.signin).place(x=35, y=270)
+        label = Label(self.frame, text="Don't have an account?", fg="#364f6b", bg="#f6f6f6",font=("Microsoft YaHei UI Light", 9))
+        label.place(x=65, y=320)
+        sign_up = Button(self.frame, width=6, text="Sign up", border=0, bg="#f6f6f6", cursor="hand2",fg="#3fc1c9", command=self.signup_cmd)
+        sign_up.place(x=215, y=320)
+
+################################################################################################### - Aesthetics for logging page ⬇️
+    def on_enter(self, e):
+        widget = e.widget
+        widget.delete(0, "end")
+
+    def on_leave(self, e):
+        widget = e.widget
+        name = widget.get()
+        if name == "":
+            if widget == self.uname:
+                widget.insert(0, "Username")
+            elif widget == self.pword:
+                widget.insert(0, "Password")
+
+################################################################################################### - Validation ⬇️                
+    def signin(self):
+        username = self.uname.get()
+        password = self.pword.get()
+
+        file = open("Uname+Pword.txt", "r")
+        d = file.read()
+        r = ast.literal_eval(d)
+        file.close()
+
+        if username in r.keys() and password == r[username]:
+            self.master.destroy()  # Close the login window
+            SecondProgram().run()  # Start the second program
+
+        else:
+            messagebox.showerror("Invalid", "Invalid username or password")
+
+
+    def signup_cmd(self):
+        SignupWindow(self.master)
+
+########################################################################################################################### - Signing Up + Validation⬇️      
+class SignupWindow(Toplevel):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master = master
+        self.title("Sign Up to Plant Finder")
+        self.geometry("925x500+300+200")
+        self.config(bg="#f6f6f6")
+        self.resizable(False, False)
+
+        self.img = PhotoImage(file="Signup.png")
+        Label(self,image=self.img,border=0,bg="#f6f6f6").place(x= -115,y=-34)
+
+        self.frame = Frame(self, width=350, height=390, bg="#f6f6f6")
+        self.frame.place(x=480, y=50)
+
+        self.heading = Label(self.frame, text="Sign up", fg="#3fc1c9", bg="#f6f6f6",font=("Microsoft Yahei UI Light", 23, "bold"))
+        self.heading.place(x=130, y=5)
+
+################################################################################################### - Enter username for signing up ⬇️
+        self.uname_label = Label(self.frame, text="Username", fg="#364f6b", bg="#f6f6f6", font=("Microsoft Yahei UI Light", 11))
+        self.uname_label.place(x=60, y=105)
+        self.uname_entry = Entry(self.frame, width=25, fg="#364f6b", border=0, bg="#f6f6f6", font=("Microsoft Yahei UI Light", 11))
+        self.uname_entry.place(x=60, y=105)
+        self.uname_entry.insert(0, "Username")
+        self.uname_entry.bind("<FocusIn>", self.on_enter)
+        self.uname_entry.bind("<FocusOut>", self.on_leave)
+        Frame(self.frame, width=295, height=2, bg="#364f6b").place(x=59, y=127)
+
+################################################################################################### - Enter password for signing up ⬇️
+        self.pword_label = Label(self.frame, text="Password", fg="#364f6b", bg="#f6f6f6", font=("Microsoft Yahei UI Light", 11))
+        self.pword_label.place(x=60, y=155)
+        self.pword_entry = Entry(self.frame, width=25, fg="#364f6b", border=0, bg="#f6f6f6", font=("Microsoft Yahei UI Light", 11))
+        self.pword_entry.place(x=60, y=155)
+        self.pword_entry.insert(0, "Password")
+        self.pword_entry.bind("<FocusIn>", self.on_enter)
+        self.pword_entry.bind("<FocusOut>", self.on_leave)
+        Frame(self.frame, width=295, height=2, bg="#364f6b").place(x=59, y=177)
+
+################################################################################################### - Confirm Password for signing up ⬇️
+        self.confirm_pword_label = Label(self.frame, text="Confirm Password", fg="#364f6b", bg="#f6f6f6", font=("Microsoft Yahei UI Light", 11))
+        self.confirm_pword_label.place(x=60, y=205)
+        self.confirm_pword_entry = Entry(self.frame, width=25, fg="#364f6b", border=0, bg="#f6f6f6", font=("Microsoft Yahei UI Light", 11))
+        self.confirm_pword_entry.place(x=60, y=205)
+        self.confirm_pword_entry.insert(0, "Confirm Password")
+        self.confirm_pword_entry.bind("<FocusIn>", self.on_enter)
+        self.confirm_pword_entry.bind("<FocusOut>", self.on_leave)
+        Frame(self.frame, width=295, height=2, bg="#364f6b").place(x=59, y=230)
+
+################################################################################################### - Already have an account ⬇️
+        self.signup_button = Button(self.frame, width=39, pady=7, text="Sign up", bg="#3fc1c9", fg="#f6f6f6",border=0, command=self.signup)
+        self.signup_button.place(x=64, y=260)
+        self.already_have_label = Label(self.frame, text="Already have an account?", fg="black", bg="#f6f6f6",font=("Microsoft YaHei UI Light", 9))
+        self.already_have_label.place(x=100, y=300)
+        self.signin_button = Button(self.frame, width=6, text="Sign in", border=0, bg="#f6f6f6", cursor="hand2",fg="#3fc1c9", command=self.signin)
+        self.signin_button.place(x=248, y=300)
+        
+################################################################################################### - Aesthetics for logging page ⬇️
+    def on_enter(self, event):
+        entry = event.widget
+        if entry.get() == "Username" or entry.get() == "Password" or entry.get() == "Confirm Password":
+            entry.delete(0, END)
+
+    def on_leave(self, event):
+        entry = event.widget
+        if entry.get() == "":
+            if entry == self.uname_entry:
+                entry.insert(0, "Username")
+            elif entry == self.pword_entry:
+                entry.insert(0, "Password")
+            elif entry == self.confirm_pword_entry:
+                entry.insert(0, "Confirm Password")        
+
+################################################################################################### - Validation ⬇️      
+    def signup(self):
+        username = self.uname_entry.get()
+        password = self.pword_entry.get()
+        confirm_password = self.confirm_pword_entry.get()
+
+        if password == confirm_password:
+            try:
+                file = open("Uname+Pword.txt", "r+")
+                d = file.read()
+                r = ast.literal_eval(d)
+
+                dict2 = {username: password}
+                r.update(dict2)
+                file.truncate(0)
+                file.close()
+
+                file = open("Uname+Pword.txt", "w")
+                w = file.write(str(r))
+
+                messagebox.showinfo("Signup", "Successfully signed up")
+                self.destroy()
+
+            except:
+                file = open("Uname+Pword.txt", "w")
+                pp = str({"Username": "password"})
+                file.write(pp)
+                file.close()
+
+        else:
+            messagebox.showerror("Invalid", "Passwords do not match")
+
+    def signin(self):
+        self.destroy()
+        LoginFrame(self.master)
+
+########################################################################################################################### - Creating second window and details ⬇️
+class SecondProgram:
+    def __init__(self):
+        self.second_window = Tk()
+        self.second_window.geometry("925x500")
+        self.second_window.configure(bg="#3b322c")
+
+        self.canvas = Canvas(
+            self.second_window,
+            bg=colour["Background"],
+            height=500,
+            width=925,
+            bd=0,
+            highlightthickness=0,
+            relief="ridge"
+        )
+        self.canvas.place(x=0, y=0)
+
+        self.canvas.create_rectangle(
+            90.0,
+            103.0,
+            477.0,
+            349.0,
+            fill=colour["Box"],
+            outline=""
+        )
+        self.canvas.create_rectangle(
+            663.0,
+            103.0,
+            895.0,
+            349.0,
+            fill=colour["Box"],
+            outline=""
+        )
+        self.canvas.create_text(
+            190.0,
+            0.0,
+            anchor="nw",
+            text="Welcome to Plant Finder",
+            fill=colour["Title"],
+            font=("MochiyPopOne Regular", 48 * -1)
+        )
+        self.canvas.create_text(
+            173.0,
+            118.0,
+            anchor="nw",
+            text="Upload an image here",
+            fill=colour["Text"],
+            font=("Inter", 24 * -1)
+        )
+        self.canvas.create_text(
+            673.0,
+            113.0,
+            anchor="nw",
+            text="How to use Plant Finder",
+            fill=colour["Text"],
+            font=("Inter", 20 * -1)
+        )
+        self.canvas.create_text(
+            673.0,
+            164.0,
+            anchor="nw",
+            text="Step 1 - Photograph your plant\n\n\nStep 2 - Hit the upload button\n\n\nStep 3 - Sit back, relax",
+            fill=colour["Text"],
+            font=("Inter", 17 * -1)
+        )
+
+        self.exit_button = Button(
+            self.second_window,
+            command=self.exit_program,
+            background="#94e8b4",
+            text="Exit",
+            font=("Calibri", 20),
+            width=12,
+        )
+        self.exit_button.place(
+            x=37,
+            y=436,
+        )
+
+        self.upload_button = Button(
+            self.second_window,
+            command=self.upload_image,
+            background="#94e8b4",
+            text="Upload",
+            font=("Calibri", 20),
+            width=12,
+        )
+        self.upload_button.place(
+            x=190,
+            y=235,
+        )
+
+        self.second_window.resizable(False, False)
+
+    def run(self):
+        self.second_window.mainloop()
+################################################################################################################################ - Exiting program ⬇️
+    def exit_program(self):
+        print("Exiting program")
+        self.second_window.quit()
+        quit()
+
+################################################################################################################################ - Image upload call ⬇️
+    def upload_image(self):
+        print("Image uploaded")
+        UploadHandler.show()
+
+################################################################################################################################ - Image upload program ⬇️
+class UploadHandler:
+    @staticmethod
+    def show():
+        class UploadHandler(tornado.web.RequestHandler):
+            def get(self):
+                self.render("index.html")
+
+            def post(self):
+                files = self.request.files["imgFile"]
+
+                # Assume only one file is uploaded for simplicity
+                if files:
+                    f = files[0]
+
+                    # Create the 'img' folder if it doesn't exist already
+                    img_dir = "img"
+                    if not os.path.exists(img_dir):
+                        os.makedirs(img_dir)
+
+                    # Save the user uploaded image to the img folder
+                    uploaded_image_path = os.path.join(img_dir, f.filename)
+                    fh = open(uploaded_image_path, "wb")
+                    fh.write(f.body)
+                    fh.close()
+
+                    # Load the uploaded image as the reference image
+                    ref_image = cv2.imread(uploaded_image_path, cv2.IMREAD_GRAYSCALE)
+
+                    input_dir = r"C:\Users\easas\OneDrive - Willow Learning Trust\A Level\Computer Science\Programming Project\FinalCode\Database"
+
+                    for filename in os.listdir(input_dir):
+                        if filename.endswith(".jpg") or filename.endswith(".png"):
+                            def mse(imageA, imageB):
+                                diff = cv2.subtract(imageA, imageB)
+                                err = np.sum(diff ** 2)
+                                mse = err / (float(imageA.shape[0] * imageA.shape[1]))
+                                return mse
+
+                            # Function to display output in a Tkinter window
+                            def display_output(output):
+                                output_text.config(state=tk.NORMAL)
+                                output_text.insert(tk.END, output + "\n", "color")
+                                output_text.tag_configure("color", foreground=colour["Text"])
+                                output_text.config(state=tk.DISABLED)
+
+                            # Your input directory
+                            input_dir = r"C:\Users\easas\OneDrive - Willow Learning Trust\A Level\Computer Science\Programming Project\FinalCode\Database"
+
+                            # Create a Tkinter window
+                            root = tk.Tk()
+                            root.title("MSE Output")
+                            root.geometry("925x500")
+                            root.configure(background=colour["Background"])
+
+                            # Create a text box to display output
+                            output_text = tk.Text(root, wrap=tk.WORD, bg=colour["Background"], fg="white", font=("Arial", 12))
+                            output_text.pack(fill=tk.BOTH, expand=True)
+
+                            # Load reference image
+                            ref_image = cv2.imread(uploaded_image_path, cv2.IMREAD_GRAYSCALE)
+
+                            # Process each image in the input directory
+                            for filename in os.listdir(input_dir):
+                                if filename.endswith(".jpg"):
+                                    # Construct the full image path
+                                    image_path = os.path.join(input_dir, filename)
+
+                                    # Load the image from the input directory and convert it to grayscale
+                                    input_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+                                    # Find the MSE value between the two images
+                                    error = mse(ref_image, input_image)
+
+                                    # Display the output in the Tkinter window
+                                    output = f'MSE value for {os.path.basename(uploaded_image_path)} compared to {filename}: {error}'
+                                    display_output(output)
+
+                            root.mainloop()
+
+                    self.write(f"https://localhost:8881/img/{f.filename}")
+########################################################################################################################### - Stopping the server ⬇️
+        def stop_server():
+            print("Stopping server...")
+            tornado.ioloop.IOLoop.current().stop()
+
+        if __name__ == "__main__":
+            app = tornado.web.Application([
+                ("/", UploadHandler),
+                ("/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"})
+            ], debug=True)
+
+            app.listen(8881)
+            print("Listening on port 8881")
+            webbrowser.open('http://localhost:8881')
+
+            # Schedule the stop_server function to be called every 30 seconds
+            tornado.ioloop.PeriodicCallback(stop_server, 30000).start()
+
+            tornado.ioloop.IOLoop.current().start()
+########################################################################################################################### - Running the program ⬇️
+if __name__ == "__main__":
+    app = PlantFinderApp()
+    app.run()
